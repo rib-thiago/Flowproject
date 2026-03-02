@@ -1,6 +1,7 @@
 📊 ANÁLISE COMPLETA - TODOS OS FLOWS DO PROJETO
 
-Thiago, excelente pergunta! Vamos revisar tudo o que documentamos e verificar se falta algum:
+Thiago, excelente pergunta! Vamos revisar tudo o que documentamos e verificar se falta https://chat.deepseek.com/share/n6zivchl2pf4s4j0uj
+
 
 ---
 
