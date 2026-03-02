@@ -1,0 +1,831 @@
+Perfeito! Vou gerar o conteúdo completo de todas as 19 issues do MVP, seguindo rigorosamente o template e os padrões da sua documentação. Cada issue está pronta para copiar e colar diretamente no GitHub.
+
+---
+
+📋 ISSUES COMPLETAS DO MVP - CRAFTEXT
+
+---
+
+🏷️ SPRINT 1: Fundação da Arquitetura (Semanas 1-2)
+
+---
+
+ISSUE #1: Renomear projeto para CraftText
+
+```markdown
+## 🎯 Objetivo
+Renomear todo o projeto de "ShowTrials" para "CraftText", incluindo código, documentação, imports e referências.
+
+## 📋 Tarefas
+- [ ] Renomear diretório raiz e pacotes Python
+- [ ] Atualizar todos os imports no código (`showtrials` → `crafttext`)
+- [ ] Atualizar `pyproject.toml` com novo nome e metadados
+- [ ] Renomear arquivos de documentação (FASE*.md, ARCHITECTURE.md, etc.)
+- [ ] Atualizar referências em `README.md`, `CHANGELOG.md`, `mkdocs.yml`
+- [ ] Atualizar badges e links nos documentos
+- [ ] Verificar se não restou nenhuma referência a "ShowTrials"
+- [ ] Atualizar nome do repositório no GitHub (se aplicável)
+
+## 📍 Localização
+Todo o projeto
+
+## ✅ Critérios de Aceite
+- [ ] `pip install crafttext` funciona (após empacotamento futuro)
+- [ ] `from crafttext.domain import ...` funciona
+- [ ] Nenhuma referência a "ShowTrials" no código fonte
+- [ ] Documentação toda refletindo o novo nome
+- [ ] Todos os testes passam após renomeação
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`chore` `priority:P0` `sprint:1`
+```
+
+---
+
+ISSUE #2: Definir contratos de plugins (Domain)
+
+```markdown
+## 🎯 Objetivo
+Criar as interfaces abstratas (contratos) para os três tipos de plugins no domínio: SourcePlugin, ProcessorPlugin e ExporterPlugin.
+
+## 📋 Tarefas
+- [ ] Criar arquivo `crafttext/domain/interfaces/plugins.py`
+- [ ] Implementar classe abstrata `SourcePlugin` com método `coletar(config)`
+- [ ] Implementar classe abstrata `ProcessorPlugin` com método `processar(documento, config)`
+- [ ] Implementar classe abstrata `ExporterPlugin` com método `exportar(documentos, config)`
+- [ ] Adicionar métodos comuns: `nome()`, `descricao()`, `config_schema()`
+- [ ] Documentar com docstrings completas (Google Style)
+- [ ] Adicionar type hints em todos os métodos
+- [ ] Criar testes unitários para garantir que as classes são abstratas
+
+## 📍 Localização
+`crafttext/domain/interfaces/plugins.py`
+
+## ✅ Critérios de Aceite
+- [ ] `SourcePlugin` não pode ser instanciada (abc.ABC)
+- [ ] Métodos abstratos forçam implementação nas subclasses
+- [ ] Type hints corretos (uso de `Protocol` onde necessário)
+- [ ] Docstrings explicativas para cada método
+- [ ] Testes verificam o comportamento esperado
+
+## 🔗 Dependências
+- #1 (renomeação)
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`engine` `priority:P0` `sprint:1`
+```
+
+---
+
+ISSUE #3: Plugin Manager
+
+```markdown
+## 🎯 Objetivo
+Implementar o gerenciador de plugins que registra, carrega sob demanda (lazy loading) e fornece estatísticas de uso.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugin_manager.py`
+- [ ] Implementar classe `PluginManager` (singleton)
+- [ ] Método `register(nome, factory, lazy=True, singleton=True, **config)`
+- [ ] Método `get(nome)` que carrega sob demanda
+- [ ] Cache de instâncias para plugins singleton
+- [ ] Estatísticas de uso (chamadas, tempo de carga, erros)
+- [ ] Método `list_plugins()` retornando todos registrados
+- [ ] Método `get_status()` com estatísticas
+- [ ] Testes unitários completos
+- [ ] Testes de telemetria
+
+## 📍 Localização
+`crafttext/infrastructure/plugin_manager.py`
+
+## ✅ Critérios de Aceite
+- [ ] Plugins lazy só são carregados na primeira chamada a `get()`
+- [ ] Plugins singleton retornam mesma instância
+- [ ] Estatísticas são atualizadas corretamente
+- [ ] Cobertura de testes ≥85%
+- [ ] MyPy 0 erros
+
+## 🔗 Dependências
+- #2 (contratos de plugins)
+
+## ⏱️ Estimativa
+8 horas
+
+## 🏷️ Labels
+`engine` `priority:P0` `sprint:1`
+```
+
+---
+
+ISSUE #4: Entidade Pipeline
+
+```markdown
+## 🎯 Objetivo
+Criar as entidades de domínio para representar um pipeline configurável: Pipeline (entidade) e PipelineStep (value object).
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/domain/entities/pipeline.py`
+- [ ] Implementar classe `PipelineStep` (value object imutável) com:
+  - `ordem: int`
+  - `tipo: str` ('source', 'processor', 'exporter')
+  - `plugin: str` (nome do plugin)
+  - `config: Dict` (configuração específica)
+- [ ] Implementar classe `Pipeline` (entidade) com:
+  - `id: Optional[int]`
+  - `nome: str`
+  - `descricao: Optional[str]`
+  - `steps: List[PipelineStep]`
+  - `created_at: datetime`
+  - `updated_at: datetime`
+- [ ] Método `adicionar_step(step)` que valida ordem
+- [ ] Método `validar()` que verifica steps
+- [ ] Testes unitários
+- [ ] Docstrings completas
+
+## 📍 Localização
+`crafttext/domain/entities/pipeline.py`
+
+## ✅ Critérios de Aceite
+- [ ] PipelineStep é imutável (frozen dataclass)
+- [ ] Pipeline valida steps duplicados na mesma ordem
+- [ ] Pipeline calcula `updated_at` automaticamente
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #1 (renomeação)
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`engine` `priority:P0` `sprint:1`
+```
+
+---
+
+ISSUE #5: Executor de Pipeline
+
+```markdown
+## 🎯 Objetivo
+Implementar o orquestrador que executa um pipeline, passando contexto entre os steps e tratando erros.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/application/use_cases/executar_pipeline.py`
+- [ ] Implementar classe `ExecutarPipeline` (caso de uso)
+- [ ] Definir `ContextoPipeline` (dataclass) com:
+  - `documentos: List[Documento]`
+  - `artefatos: Dict[str, Any]`
+  - `resultados_agregados: Dict[str, Any]`
+  - `estado_execucao: Dict[str, Any]`
+- [ ] Método `executar(pipeline: Pipeline, contexto_inicial: ContextoPipeline)`
+- [ ] Para cada step, chamar plugin correspondente via PluginManager
+- [ ] Passar contexto atualizado entre steps
+- [ ] Tratamento de erros: capturar, registrar, decidir se continua
+- [ ] Telemetria: registrar início/fim de cada step
+- [ ] Testes de integração com plugins mock
+
+## 📍 Localização
+`crafttext/application/use_cases/executar_pipeline.py`
+
+## ✅ Critérios de Aceite
+- [ ] Executa steps na ordem correta
+- [ ] Contexto é passado corretamente entre steps
+- [ ] Erros em um step não quebram todo o pipeline (configurável)
+- [ ] Telemetria registra todos os eventos
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #3 (Plugin Manager)
+- #4 (Entidade Pipeline)
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`engine` `priority:P0` `sprint:1`
+```
+
+---
+
+ISSUE #6: Configuração YAML
+
+```markdown
+## 🎯 Objetivo
+Criar loader que transforma arquivos YAML em objetos Pipeline, com validação de estrutura e plugins existentes.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/config/yaml_loader.py`
+- [ ] Implementar classe `YamlPipelineLoader`
+- [ ] Método `carregar(caminho: Path) -> Pipeline`
+- [ ] Validar estrutura mínima (nome, steps)
+- [ ] Para cada step, validar se plugin existe no PluginManager
+- [ ] Converter tipos (ex: strings para int/datetime)
+- [ ] Erros amigáveis com localização no YAML
+- [ ] Testes com vários exemplos de YAML
+- [ ] Documentar formato esperado
+
+## 📍 Localização
+`crafttext/infrastructure/config/yaml_loader.py`
+
+## ✅ Critérios de Aceite
+- [ ] YAML válido é convertido em Pipeline
+- [ ] Erros apontam linha e coluna no arquivo
+- [ ] Plugins inexistentes geram erro claro
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #3 (Plugin Manager)
+- #4 (Entidade Pipeline)
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`infra` `priority:P0` `sprint:1`
+```
+
+---
+
+🏷️ SPRINT 2: Fontes (Semanas 3-4)
+
+---
+
+ISSUE #7: Plugin Web Scraper
+
+```markdown
+## 🎯 Objetivo
+Adaptar o scraper atual para funcionar como um SourcePlugin configurável via YAML.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/sources/web_scraper.py`
+- [ ] Implementar classe `WebScraperPlugin(SourcePlugin)`
+- [ ] Método `coletar(config)` com:
+  - `url`: página inicial
+  - `paginacao`: tipo (sequencial, parâmetro)
+  - `seletores`: CSS para título, texto, data
+- [ ] Reaproveitar lógica existente do scraping
+- [ ] Extrair metadados (URL original, data de coleta)
+- [ ] Tratamento de erros (timeout, 404)
+- [ ] Testes de integração com site de teste
+- [ ] Documentação com exemplos
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/sources/web_scraper.py`
+
+## ✅ Critérios de Aceite
+- [ ] Coleta múltiplas páginas com paginação
+- [ ] Extrai título, texto, data conforme seletores
+- [ ] Retorna lista de Documentos
+- [ ] Cobertura ≥80%
+
+## 🔗 Dependências
+- #2 (contratos de plugins)
+- #3 (Plugin Manager)
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:2`
+```
+
+---
+
+ISSUE #8: Plugin Pasta Local
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que lê todos os arquivos de texto de um diretório (e subdiretórios) e os converte em Documentos.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/sources/folder_source.py`
+- [ ] Implementar classe `FolderSourcePlugin(SourcePlugin)`
+- [ ] Método `coletar(config)` com:
+  - `caminho`: diretório base
+  - `recursivo`: bool
+  - `extensoes`: lista (ex: ['.txt', '.md', '.csv'])
+  - `encoding`: 'utf-8' (configurável)
+- [ ] Extrair metadados: nome arquivo, data modificação, tamanho
+- [ ] Suporte a CSV: cada linha vira documento separado? (configurável)
+- [ ] Testes com diretório temporário
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/sources/folder_source.py`
+
+## ✅ Critérios de Aceite
+- [ ] Lê todos os arquivos com extensões especificadas
+- [ ] Opção recursiva funciona
+- [ ] CSV é interpretado corretamente (se configurado)
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:2`
+```
+
+---
+
+ISSUE #9: Plugin PDF
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que extrai texto de arquivos PDF usando PyPDF2, com fallback para OCR se necessário.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/sources/pdf_source.py`
+- [ ] Implementar classe `PDFSourcePlugin(SourcePlugin)`
+- [ ] Método `coletar(config)` com:
+  - `caminho`: arquivo ou diretório
+  - `modo`: 'texto' (PyPDF2), 'ocr' (Tesseract), 'auto'
+  - `idiomas_ocr`: lista (ex: ['por', 'eng'])
+- [ ] Extrair metadados: número páginas, autor, título (se houver)
+- [ ] Testes com PDFs de exemplo
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/sources/pdf_source.py`
+
+## ✅ Critérios de Aceite
+- [ ] Extrai texto de PDFs textuais
+- [ ] Fallback para OCR funciona
+- [ ] Lida com PDFs escaneados (imagens)
+- [ ] Cobertura ≥80%
+
+## 🔗 Dependências
+- #2, #3, #10 (OCR)
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:2`
+```
+
+---
+
+ISSUE #10: Plugin OCR (Tesseract)
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que usa Tesseract OCR para extrair texto de imagens (JPG, PNG, etc.), com suporte a múltiplos idiomas.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/sources/ocr_source.py`
+- [ ] Implementar classe `OCRSourcePlugin(SourcePlugin)`
+- [ ] Método `coletar(config)` com:
+  - `caminho`: arquivo ou diretório
+  - `idiomas`: lista (padrão: ['por', 'eng', 'rus'])
+  - `preprocessamento`: bool (melhorar imagem)
+  - `dpi`: int (resolução para OCR)
+- [ ] Integrar com pytesseract
+- [ ] Pré-processamento com OpenCV (binarização, redimensionamento)
+- [ ] Testes com imagens de exemplo
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/sources/ocr_source.py`
+
+## ✅ Critérios de Aceite
+- [ ] Extrai texto de imagens com qualidade razoável
+- [ ] Suporte a português, inglês, russo
+- [ ] Pré-processamento melhora resultados
+- [ ] Cobertura ≥75%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+8 horas
+
+## 🏷️ Labels
+`feature` `priority:P1` `sprint:2`
+```
+
+---
+
+🏷️ SPRINT 3: Processadores (Semanas 5-6)
+
+---
+
+ISSUE #11: Plugin Classificador por Regras
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que classifica documentos com base em regras customizáveis definidas pelo usuário em YAML.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/processors/classifier.py`
+- [ ] Implementar classe `RuleClassifierPlugin(ProcessorPlugin)`
+- [ ] Método `processar(documento, config)` com:
+  - `regras`: dicionário categoria → lista de padrões
+  - `modo`: 'primeiro' (primeira que casar) ou 'multiplo'
+  - `case_sensitive`: bool
+- [ ] Padrões podem ser strings ou regex
+- [ ] Adicionar resultado da classificação nos metadados
+- [ ] Testes com vários exemplos
+- [ ] Documentação com exemplos
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/processors/classifier.py`
+
+## ✅ Critérios de Aceite
+- [ ] Classifica baseado em palavras-chave
+- [ ] Suporte a regex
+- [ ] Modo múltiplo adiciona várias categorias
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:3`
+```
+
+---
+
+ISSUE #12: Plugin Extrator de Entidades
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que extrai entidades nomeadas (PERSON, ORG, LOC, DATE) usando spaCy, com modelos configuráveis por idioma.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/processors/ner.py`
+- [ ] Implementar classe `NERPlugin(ProcessorPlugin)`
+- [ ] Método `processar(documento, config)` com:
+  - `idioma`: 'pt', 'en', 'ru' (padrão: 'pt')
+  - `modelo`: nome do modelo spaCy (opcional)
+  - `tipos`: lista de tipos a extrair (padrão: todos)
+  - `confianca_minima`: float (0.0 a 1.0)
+- [ ] Carregar modelos sob demanda (lazy)
+- [ ] Adicionar entidades aos metadados do documento
+- [ ] Testes com textos de exemplo
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/processors/ner.py`
+
+## ✅ Critérios de Aceite
+- [ ] Extrai PERSON, ORG, LOC, DATE
+- [ ] Modelos carregados sob demanda
+- [ ] Filtra por tipo e confiança
+- [ ] Cobertura ≥80%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+8 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:3`
+```
+
+---
+
+ISSUE #13: Plugin Tradutor (Múltiplos Backends)
+
+```markdown
+## 🎯 Objetivo
+Criar plugin de tradução com suporte a múltiplos backends: Google Translate (pago), LibreTranslate (grátis), Hugging Face (offline).
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/processors/translator.py`
+- [ ] Implementar classe `TranslatorPlugin(ProcessorPlugin)`
+- [ ] Definir backends:
+  - `GoogleTranslator` (requer API key)
+  - `LibreTranslator` (self-hosted ou público)
+  - `HuggingFaceTranslator` (modelos offline)
+  - `ArgosTranslator` (leve, offline)
+- [ ] Método `processar(documento, config)` com:
+  - `backend`: 'google', 'libre', 'huggingface', 'argos'
+  - `idioma_origem`: auto-detectar ou especificar
+  - `idioma_destino`: 'pt', 'en', 'ru', etc.
+  - `api_key`: (para backends pagos)
+- [ ] Fallback automático se backend falhar
+- [ ] Cache de traduções para evitar retrabalho
+- [ ] Testes com mocks
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/processors/translator.py`
+
+## ✅ Critérios de Aceite
+- [ ] Múltiplos backends funcionam (pelo menos Google + Libre)
+- [ ] Fallback configurável
+- [ ] Cache evita traduções repetidas
+- [ ] Cobertura ≥80%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+10 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:3`
+```
+
+---
+
+ISSUE #14: CLI Completa para Pipelines
+
+```markdown
+## 🎯 Objetivo
+Implementar comandos de linha de comando para gerenciar pipelines: executar, listar, criar interativamente.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/interface/cli/commands_pipeline.py`
+- [ ] Comando `crafttext pipeline run <arquivo.yaml>`
+  - Carregar YAML
+  - Executar pipeline
+  - Mostrar progresso e resultados
+- [ ] Comando `crafttext pipeline list`
+  - Listar pipelines salvos no banco
+- [ ] Comando `crafttext pipeline create --interactive`
+  - Perguntas guiadas para criar pipeline
+  - Salvar como YAML
+- [ ] Usar Rich para interface bonita
+- [ ] Telemetria dos comandos executados
+- [ ] Testes manuais (CLI)
+
+## 📍 Localização
+`crafttext/interface/cli/commands_pipeline.py`
+
+## ✅ Critérios de Aceite
+- [ ] `run` executa pipeline e mostra resultados
+- [ ] `list` mostra pipelines salvos
+- [ ] `create` gera YAML válido
+- [ ] Mensagens de erro claras
+
+## 🔗 Dependências
+- #5 (Executor)
+- #6 (YAML Loader)
+
+## ⏱️ Estimativa
+8 horas
+
+## 🏷️ Labels
+`feature` `priority:P1` `sprint:3`
+```
+
+---
+
+🏷️ SPRINT 4: Exportação e Finalização (Semanas 7-8)
+
+---
+
+ISSUE #15: Plugin Exportador SQLite
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que persiste documentos em banco SQLite, com criação automática de tabelas e consultas básicas.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/exporters/sqlite.py`
+- [ ] Implementar classe `SQLiteExporterPlugin(ExporterPlugin)`
+- [ ] Método `exportar(documentos, config)` com:
+  - `caminho`: arquivo .db
+  - `tabela`: nome da tabela (padrão: 'documentos')
+  - `modo`: 'substituir' ou 'adicionar'
+- [ ] Criar schema automaticamente
+- [ ] Mapear metadados para colunas
+- [ ] Inserir em lote para performance
+- [ ] Testes com banco temporário
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/exporters/sqlite.py`
+
+## ✅ Critérios de Aceite
+- [ ] Banco é criado se não existir
+- [ ] Tabela com colunas para título, texto, metadados
+- [ ] Inserção em lote funciona
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:4`
+```
+
+---
+
+ISSUE #16: Plugin Exportador CSV
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que exporta documentos para arquivo CSV, com colunas configuráveis.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/exporters/csv.py`
+- [ ] Implementar classe `CSVExporterPlugin(ExporterPlugin)`
+- [ ] Método `exportar(documentos, config)` com:
+  - `caminho`: arquivo .csv
+  - `delimitador`: ',' (padrão), ';', '\t'
+  - `colunas`: lista de campos a incluir
+  - `incluir_cabecalho`: bool
+  - `encoding`: 'utf-8'
+- [ ] Escapar caracteres especiais corretamente
+- [ ] Testes com arquivo temporário
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/exporters/csv.py`
+
+## ✅ Critérios de Aceite
+- [ ] CSV gerado é válido
+- [ ] Delimitador configurável
+- [ ] Escape de aspas/vírgulas funciona
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:4`
+```
+
+---
+
+ISSUE #17: Plugin Exportador JSON
+
+```markdown
+## 🎯 Objetivo
+Criar plugin que exporta documentos para arquivo JSON, com opção de indentação e formatação.
+
+## 📋 Tarefas
+- [ ] Criar `crafttext/infrastructure/plugins/exporters/json.py`
+- [ ] Implementar classe `JSONExporterPlugin(ExporterPlugin)`
+- [ ] Método `exportar(documentos, config)` com:
+  - `caminho`: arquivo .json
+  - `indent`: 2 (padrão), None para minificado
+  - `ensure_ascii`: bool (escapar não-ASCII)
+  - `incluir_metadados`: bool
+- [ ] Estrutura: array de objetos
+- [ ] Testes com arquivo temporário
+- [ ] Documentação
+
+## 📍 Localização
+`crafttext/infrastructure/plugins/exporters/json.py`
+
+## ✅ Critérios de Aceite
+- [ ] JSON válido gerado
+- [ ] Indentação configurável
+- [ ] Caracteres não-ASCII tratados
+- [ ] Cobertura ≥85%
+
+## 🔗 Dependências
+- #2, #3
+
+## ⏱️ Estimativa
+4 horas
+
+## 🏷️ Labels
+`feature` `priority:P0` `sprint:4`
+```
+
+---
+
+ISSUE #18: Documentação do MVP
+
+```markdown
+## 🎯 Objetivo
+Criar documentação completa do MVP para usuários, incluindo manual, exemplos e referência de API.
+
+## 📋 Tarefas
+- [ ] Atualizar `README.md` com:
+  - Visão geral do CraftText
+  - Instalação (pip)
+  - Exemplo rápido de uso
+  - Badges atualizados
+- [ ] Criar `docs/manual_usuario.md` com:
+  - Conceitos (pipelines, plugins)
+  - Como criar um pipeline YAML
+  - Exemplos práticos
+  - Comandos CLI
+- [ ] Atualizar `mkdocs.yml` com nova estrutura
+- [ ] Criar exemplos de pipeline na pasta `examples/`
+  - `web_scraper.yaml`
+  - `pdf_ocr.yaml`
+  - `classificacao.yaml`
+- [ ] Documentar cada plugin (configuração, exemplos)
+- [ ] Verificar todos os links
+
+## 📍 Localização
+`docs/`, `README.md`, `examples/`
+
+## ✅ Critérios de Aceite
+- [ ] README claro e convidativo
+- [ ] Manual do usuário cobre casos principais
+- [ ] Exemplos funcionam (testados)
+- [ ] Documentação publicada no GitHub Pages
+
+## ⏱️ Estimativa
+8 horas
+
+## 🏷️ Labels
+`docs` `priority:P1` `sprint:4`
+```
+
+---
+
+ISSUE #19: Pacote Python (pip)
+
+```markdown
+## 🎯 Objetivo
+Empacotar o CraftText para instalação via pip, com todas as dependências resolvidas e entry points para CLI.
+
+## 📋 Tarefas
+- [ ] Atualizar `pyproject.toml` com:
+  - Nome, versão, descrição
+  - Dependências principais
+  - Entry points para `crafttext` CLI
+- [ ] Resolver dependências NLP (tentar migrar para Poetry)
+- [ ] Criar `README.md` para PyPI
+- [ ] Testar instalação local: `pip install -e .`
+- [ ] Configurar GitHub Actions para publicar no PyPI em tags
+- [ ] Documentar processo de publicação
+
+## 📍 Localização
+`pyproject.toml`, `.github/workflows/publish.yml`
+
+## ✅ Critérios de Aceite
+- [ ] `pip install crafttext` funciona em ambiente limpo
+- [ ] Comando `crafttext` disponível no PATH
+- [ ] Dependências resolvidas sem conflitos
+- [ ] Publicação automática no PyPI ao criar tag
+
+## 🔗 Dependências
+- Todas as anteriores (MVP completo)
+
+## ⏱️ Estimativa
+6 horas
+
+## 🏷️ Labels
+`infra` `priority:P1` `sprint:4`
+```
+
+---
+
+📊 RESUMO PARA KANBAN
+
+Sprint Issues Total
+Sprint 1 #1 a #6 6
+Sprint 2 #7 a #10 4
+Sprint 3 #11 a #14 4
+Sprint 4 #15 a #19 5
+TOTAL  19
+
+---
+
+🚀 INSTRUÇÕES PARA CRIAR NO KANBAN
+
+1. Criar o Milestone
+   · GitHub → Issues → Milestones → New Milestone
+   · Título: MVP - CraftText Platform
+   · Data: 30/04/2026
+   · Descrição: (copiar do início)
+2. Criar as Issues
+   · Para cada issue acima, clicar em "New Issue"
+   · Colar o conteúdo
+   · Adicionar labels (copiar da issue)
+   · Associar ao milestone
+   · Não atribuir ainda (você assume conforme começar)
+3. Organizar no Project (Kanban)
+   · Mover todas para Backlog
+   · Mover Sprint 1 para Ready
+   · Começar pela #1
+
+---
+
+PRÓXIMOS PASSOS
+
+1. ✅ Criar milestone no GitHub
+2. ✅ Criar issues (copiar e colar)
+3. 📌 Mover Sprint 1 para Ready
+4. 🚀 Iniciar pela Issue #1 (renomear)
+
+Precisa de ajuda com mais alguma coisa? Quer que eu ajuste alguma issue?
