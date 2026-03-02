@@ -1,0 +1,183 @@
+Perfeito! CraftText é um nome excelente - curto, memorável e transmite exatamente a ideia de "artesanato de texto". Vamos começar!
+
+Primeiro, vou criar o Milestone e as Issues seguindo rigorosamente sua documentação de governança (GOVERNANCA.md, Git Flow, Quality Flow).
+
+---
+
+📅 MILESTONE: MVP - CraftText Platform
+
+Nome: MVP - CraftText Platform
+Descrição: Plataforma de pipeline configurável com plugins para fontes, processadores e exportadores. MVP em 8 semanas.
+Data: 02/03/2026 - 30/04/2026
+
+```bash
+# Comando para criar milestone (via GitHub web ou CLI)
+gh api repos/rib-thiago/crafttext/milestones -f title="MVP - CraftText Platform" -f description="Plataforma de pipeline configurável com plugins" -f due_on="2026-04-30T23:59:59Z"
+```
+
+---
+
+📋 ISSUES DO MVP (8 semanas)
+
+Organizadas por sprints de 2 semanas, seguindo o roadmap que validamos.
+
+---
+
+🏷️ SPRINT 1: Fundação da Arquitetura (Semanas 1-2)
+
+# Issue Tipo Prioridade Descrição Critérios de Aceite
+1 Renomear projeto para CraftText chore P0 Atualizar todos os arquivos, documentação, imports e referências de ShowTrials para CraftText • Nenhuma referência a ShowTrials no código • crafttext instalável via pip • Documentação atualizada
+2 Definir contratos de plugins (Domain) engine P0 Criar interfaces SourcePlugin, ProcessorPlugin, ExporterPlugin no domínio • Classes abstratas com métodos definidos • Type hints completos • Docstrings explicativas
+3 Plugin Manager engine P0 Registry especializado para carregar plugins sob demanda • Registro de plugins por nome • Lazy loading • Cache de instâncias • Estatísticas de uso
+4 Entidade Pipeline engine P0 Pipeline (entidade) e PipelineStep (value object) • Pipeline com lista de steps • Step com tipo, plugin, configuração • Validação básica
+5 Executor de Pipeline engine P0 Orquestrador que executa steps em sequência • Executa steps na ordem • Passa contexto entre steps • Tratamento de erros básico
+6 Configuração YAML infra P0 Loader que transforma YAML em objeto Pipeline • Parse de YAML válido • Validação de estrutura mínima • Erros amigáveis
+
+Total Sprint 1: 6 issues
+
+---
+
+🏷️ SPRINT 2: Fontes (Semanas 3-4)
+
+# Issue Tipo Prioridade Descrição Critérios de Aceite
+7 Plugin: Web Scraper feature P0 Adaptar scraper atual como plugin configurável • Extrai título, texto, data • Seletores CSS configuráveis • Paginação básica
+8 Plugin: Pasta Local feature P0 Ler arquivos .txt, .md, .csv de diretório • Recursivo opcional • Filtros por extensão • Metadados do arquivo
+9 Plugin: PDF feature P0 Extrair texto de PDFs (PyPDF2) • PDF textual • Fallback para OCR se necessário • Metadados do PDF
+10 Plugin: OCR (Tesseract) feature P1 Extrair texto de imagens • Idiomas: por, eng, rus • Pré-processamento básico • Configurável por idioma
+
+Total Sprint 2: 4 issues
+
+---
+
+🏷️ SPRINT 3: Processadores (Semanas 5-6)
+
+# Issue Tipo Prioridade Descrição Critérios de Aceite
+11 Plugin: Classificador por Regras feature P0 Classificar documentos com regras customizáveis • Regras em YAML • Padrões regex • Múltiplas categorias
+12 Plugin: Extrator de Entidades feature P0 Extrair PERSON, ORG, LOC, DATE (spaCy) • Modelos configuráveis • Entidades salvas como metadados • Suporte a múltiplos idiomas
+13 Plugin: Tradutor (Múltiplos Backends) feature P0 Tradutor com Google, LibreTranslate, Hugging Face • Backend configurável • Fallback automático • Cache de traduções
+14 CLI Completa para Pipelines feature P1 Comandos pipeline run, list, create • crafttext pipeline run config.yaml • crafttext pipeline list • crafttext pipeline create --interactive
+
+Total Sprint 3: 4 issues
+
+---
+
+🏷️ SPRINT 4: Exportação e Finalização (Semanas 7-8)
+
+# Issue Tipo Prioridade Descrição Critérios de Aceite
+15 Plugin: Exportador SQLite feature P0 Persistir documentos em banco SQLite • Tabelas criadas automaticamente • Metadados preservados • Consultas básicas
+16 Plugin: Exportador CSV feature P0 Exportar para planilhas • Cabeçalho configurável • Delimitador configurável • Lida com textos longos
+17 Plugin: Exportador JSON feature P0 Exportar dados estruturados • Array de objetos • JSON válido e indentado • Metadados incluídos
+18 Documentação do MVP docs P1 Manual do usuário, exemplos, API reference • README atualizado • Exemplos de pipeline YAML • Documentação de plugins
+19 Pacote Python (pip) infra P1 Empacotar para instalação via pip • pip install crafttext funcionando • Dependências resolvidas • Entry points para CLI
+
+Total Sprint 4: 5 issues
+
+---
+
+📊 RESUMO DAS ISSUES
+
+Sprint Issues Total
+Sprint 1 #1-#6 6
+Sprint 2 #7-#10 4
+Sprint 3 #11-#14 4
+Sprint 4 #15-#19 5
+TOTAL  19 issues
+
+---
+
+🏷️ LABELS A SEREM USADAS
+
+Conforme sua GOVERNANCA.md:
+
+Label Cor Uso
+engine #0052cc Mudanças na arquitetura de pipeline
+feature #0e8a16 Novos plugins/funcionalidades
+infra #bfd4f2 CI, dependências, empacotamento
+docs #fef2c0 Documentação
+chore #000000 Tarefas de manutenção
+priority:P0 #b60205 Essencial para o MVP
+priority:P1 #fbca04 Importante, mas não bloqueia
+sprint:1 #1d76db Sprint 1 (Fundação)
+sprint:2 #1d76db Sprint 2 (Fontes)
+sprint:3 #1d76db Sprint 3 (Processadores)
+sprint:4 #1d76db Sprint 4 (Exportação)
+
+---
+
+📋 TEMPLATE DE ISSUE (para copiar)
+
+Para cada issue, use este template:
+
+```markdown
+## 🎯 Objetivo
+[Descrição clara do que será implementado]
+
+## 📋 Tarefas
+- [ ] Tarefa 1
+- [ ] Tarefa 2
+- [ ] Tarefa 3
+
+## 📍 Localização
+`caminho/do/arquivo`
+
+## ✅ Critérios de Aceite
+- [ ] Critério 1
+- [ ] Critério 2
+- [ ] Testes criados/atualizados
+- [ ] Documentação atualizada
+
+## 🔗 Dependências
+- #issue (se houver)
+
+## ⏱️ Estimativa
+[X] horas
+
+## 🏷️ Labels
+`tipo` `priority:P0` `sprint:1`
+```
+
+---
+
+🚀 PRÓXIMOS PASSOS PARA VOCÊ
+
+1. Criar o Milestone no GitHub
+
+```bash
+# Pelo site:
+# https://github.com/rib-thiago/crafttext/milestones/new
+# Título: MVP - CraftText Platform
+# Data: 30/04/2026
+```
+
+2. Criar as Issues
+
+Sugiro criar uma por uma usando o template acima. Posso ajudar gerando o conteúdo completo de cada issue se quiser.
+
+3. Mover para o Kanban
+
+· Coloque todas no Backlog inicialmente
+· Mova para Ready as da Sprint 1
+· Comece pela Issue #1 (renomear projeto)
+
+4. Primeiro Commit
+
+```bash
+# Após criar a branch para a Issue #1
+git checkout -b chore/rename-to-crafttext
+# ... alterações ...
+git commit -m "chore: renomeia projeto para CraftText
+
+- Substitui todas as referências a ShowTrials
+- Atualiza nomes de pacotes e imports
+- README e documentação atualizados
+
+Closes #1"
+```
+
+---
+
+PERGUNTA FINAL
+
+Quer que eu gere o conteúdo completo de cada issue (as 19) para você copiar e colar no GitHub? Ou prefere criar aos poucos e vou auxiliando sob demanda?
+
+Também, já posso começar a atualizar a documentação dos flows e arquivos de arquitetura com o novo nome CraftText?
