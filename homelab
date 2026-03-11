@@ -1,0 +1,572 @@
+A seguir estão os documentos consolidados da discussão da manhã, já incorporando:
+	•	correção conceitual sobre o papel do CraftText
+	•	reorganização do plano do homelab
+	•	arquitetura da toolbox
+	•	organização por jobs (em vez de input/work/output global)
+	•	estratégia correta para pyenv / poetry / Docker
+
+Os textos abaixo podem ser salvos diretamente como .md ou .txt no seu repositório de documentação do homelab.
+
+⸻
+
+Documento 1 — Visão Geral do Homelab
+
+1. Objetivo do Projeto
+
+O homelab é um servidor doméstico dedicado a:
+	•	desenvolvimento de projetos pessoais
+	•	aprendizado de infraestrutura e DevOps
+	•	execução de ferramentas técnicas pesadas
+	•	hospedagem de serviços pessoais auto-hospedados
+
+Ele não é a infraestrutura oficial do projeto CraftText.
+
+O homelab será utilizado para:
+	•	testar deploy de aplicações
+	•	executar pipelines experimentais
+	•	rodar ferramentas utilitárias
+	•	hospedar serviços pessoais
+
+O CraftText poderá ser implantado no homelab apenas como ambiente de teste ou staging.
+
+⸻
+
+2. Hardware do Servidor
+
+Servidor atual:
+
+Dell Inspiron N4050
+
+Especificações:
+
+CPU
+Intel Core i5-2450M
+
+RAM
+8 GB
+
+Armazenamento
+SSD 240GB
+
+Sistema operacional:
+
+Ubuntu 22.04 LTS
+
+⸻
+
+3. Arquitetura Atual
+
+Infraestrutura já implantada:
+
+Sistema base:
+
+Ubuntu
+
+Infraestrutura:
+
+Docker
+Docker Compose
+
+Gerenciamento:
+
+Portainer
+
+Dashboard:
+
+Homepage
+
+Rede:
+
+Nginx Proxy Manager
+
+Acesso remoto:
+
+SSH com autenticação por chave pública
+
+DNS local:
+
+arquivo hosts no Windows
+
+Arquitetura atual:
+
+rede doméstica
+       │
+       ▼
+192.168.15.4
+       │
+       ▼
+Nginx Proxy Manager
+       │
+       ├── homepage.lab
+       └── portainer.lab
+
+
+⸻
+
+4. Princípios Arquiteturais
+
+O homelab segue alguns princípios fundamentais.
+
+Incrementalidade
+
+Cada etapa deve gerar um ambiente funcional.
+
+Containers como unidade principal
+
+Aplicações e serviços devem rodar em containers.
+
+Separação clara de responsabilidades
+
+Infraestrutura, ferramentas e aplicações não devem se misturar.
+
+Complexidade mínima inicial
+
+Serviços avançados só devem ser implantados quando houver necessidade real.
+
+⸻
+
+5. Camadas do Homelab
+
+A arquitetura foi dividida em quatro camadas.
+
+Infraestrutura
+
+Componentes fundamentais do sistema.
+
+Exemplos:
+
+Docker
+Portainer
+Reverse proxy
+SSH
+DNS local
+
+⸻
+
+Ferramentas de laboratório
+
+Ambiente técnico para processamento e experimentação.
+
+Exemplos:
+
+OCR
+manipulação de imagens
+processamento de PDFs
+NLP
+tradução
+
+Essas ferramentas podem ser usadas via terminal ou scripts.
+
+⸻
+
+Serviços pessoais
+
+Aplicações de uso cotidiano.
+
+Possíveis exemplos:
+
+Nextcloud
+Calibre-web
+file server
+backup
+
+⸻
+
+Aplicações implantadas
+
+Projetos que podem ser executados no servidor.
+
+Exemplos:
+
+CraftText
+APIs pessoais
+experimentos
+staging environments
+
+⸻
+
+6. Evolução Planejada
+
+Arquitetura futura:
+
+internet
+   │
+router
+   │
+dns server (futuro)
+   │
+homelab
+   │
+reverse proxy
+   │
+├── homepage
+├── portainer
+├── toolbox services
+├── nextcloud
+├── calibre
+└── aplicações implantadas
+
+
+⸻
+
+Documento 2 — Plano de Evolução do Homelab
+
+Fase 1 — Infraestrutura base
+
+Status: concluída.
+
+Componentes instalados:
+
+Ubuntu
+Docker
+Docker Compose
+Portainer
+Homepage
+Nginx Proxy Manager
+SSH com chave pública
+DNS local via hosts
+
+⸻
+
+Fase 2 — Toolbox de ferramentas
+
+Próxima etapa.
+
+Objetivo:
+
+Criar um ambiente para executar ferramentas como:
+	•	Tesseract
+	•	ImageMagick
+	•	Poppler
+	•	NLP
+	•	scripts Python
+
+Essa toolbox permitirá executar tarefas técnicas no servidor, evitando instalar ferramentas pesadas no computador principal.
+
+⸻
+
+Fase 3 — Serviços pessoais
+
+Depois da toolbox.
+
+Possíveis serviços:
+
+Nextcloud
+Calibre-web
+file server
+
+⸻
+
+Fase 4 — Infraestrutura avançada
+
+Ferramentas adicionais.
+
+Exemplos:
+
+Uptime Kuma
+Grafana
+Prometheus
+Pi-hole ou AdGuard Home
+
+⸻
+
+Fase 5 — Deploy de projetos
+
+Implantação de aplicações.
+
+Exemplos:
+
+CraftText
+APIs experimentais
+projetos pessoais
+
+⸻
+
+Fase 6 — Acesso externo
+
+Etapa opcional.
+
+Possibilidades:
+
+VPN
+Cloudflare Tunnel
+exposição segura de serviços
+
+⸻
+
+Documento 3 — Arquitetura da Toolbox
+
+A toolbox será um ambiente técnico que reúne ferramentas úteis para processamento de documentos, imagens e texto.
+
+Ela será usada principalmente via terminal.
+
+⸻
+
+1. Objetivo
+
+Permitir executar fluxos como:
+	•	extrair imagens de PDFs
+	•	melhorar qualidade de imagens
+	•	aplicar OCR
+	•	traduzir texto
+	•	analisar texto com NLP
+
+Exemplo de fluxo:
+
+PDF
+ │
+ ▼
+extração de imagens
+ │
+ ▼
+tratamento de imagem
+ │
+ ▼
+OCR
+ │
+ ▼
+tradução
+ │
+ ▼
+texto final
+
+
+⸻
+
+2. Ferramentas principais
+
+OCR
+
+Tesseract
+
+Pacotes adicionais:
+
+tesseract-ocr-rus
+tesseract-ocr-eng
+tesseract-ocr-por
+
+⸻
+
+Manipulação de imagens
+
+ImageMagick
+
+⸻
+
+Manipulação de PDF
+
+poppler-utils
+
+Ferramentas importantes:
+
+pdftoppm
+pdfinfo
+pdftotext
+
+⸻
+
+NLP
+
+Python com:
+
+spaCy
+NLTK
+
+⸻
+
+Tradução
+
+Inicialmente via APIs externas.
+
+Pode evoluir para serviços locais.
+
+⸻
+
+3. Arquitetura inicial
+
+A toolbox será um container com várias ferramentas.
+
+toolbox container
+     │
+     ├── tesseract
+     ├── imagemagick
+     ├── poppler
+     ├── python
+     └── scripts utilitários
+
+Esse container será usado via:
+
+SSH
+docker exec
+scripts
+
+⸻
+
+4. Organização do host
+
+Estrutura recomendada:
+
+/srv/toolbox
+  /compose
+  /docker
+  /scripts
+  /jobs
+  /models
+
+
+⸻
+
+5. Organização por jobs
+
+Em vez de ter diretórios globais de input/work/output, cada tarefa terá seu próprio espaço.
+
+Exemplo:
+
+/srv/toolbox/jobs/jornal-russo/
+    input/
+    work/
+    output/
+
+input
+
+arquivos originais
+
+work
+
+arquivos intermediários
+
+output
+
+resultados finais
+
+Isso facilita:
+	•	experimentação
+	•	reprocessamento
+	•	depuração
+
+⸻
+
+6. Exemplo de fluxo real
+
+Caso de uso: fac-símile de jornal russo.
+
+input/
+   jornal.pdf
+
+work/
+   page1.png
+   page1-clean.png
+
+output/
+   page1.txt
+   page1-pt.txt
+
+
+⸻
+
+7. Interface principal da toolbox
+
+Inicialmente a toolbox será usada por:
+
+SSH
+scripts
+
+Exemplo:
+
+docker exec toolbox ocr-image /toolbox/input/img.png
+
+
+⸻
+
+8. Evolução da toolbox
+
+Etapas planejadas:
+	1.	ferramentas CLI
+	2.	scripts reutilizáveis
+	3.	APIs internas
+	4.	interfaces web
+
+⸻
+
+Documento 4 — Estratégia Python no Homelab
+
+Uso no computador principal
+
+O ambiente de desenvolvimento local continuará usando:
+
+pyenv
+poetry
+
+Esse fluxo permanece ideal para desenvolvimento.
+
+⸻
+
+Uso no homelab
+
+O servidor utiliza Docker como unidade principal de isolamento.
+
+Aplicações devem rodar em containers.
+
+⸻
+
+pyenv no servidor
+
+Não é recomendado usar pyenv no host do servidor.
+
+Motivo:
+
+os containers já isolam versões de Python.
+
+⸻
+
+poetry no homelab
+
+Poetry continua útil para projetos Python específicos.
+
+Exemplo:
+
+CraftText.
+
+Nesse caso:
+	•	o projeto usa poetry
+	•	o container é construído a partir do pyproject.toml
+
+⸻
+
+Toolbox Python
+
+Para a toolbox, a estratégia será diferente.
+
+Em vez de poetry, será utilizado:
+
+requirements.txt
+
+Motivo:
+
+a toolbox não é um único projeto Python, mas um ambiente misto de ferramentas.
+
+⸻
+
+Conclusão
+
+A arquitetura do homelab foi organizada em quatro domínios:
+
+infraestrutura
+ferramentas de laboratório
+serviços pessoais
+aplicações implantadas
+
+Essa separação permite que o ambiente evolua de forma organizada e escalável.
+
+A toolbox será o principal componente técnico inicial do laboratório, permitindo executar tarefas complexas diretamente no servidor.
+
+⸻
+
+Se quiser, quando você voltar para casa posso também preparar o próximo passo prático completo, incluindo:
+	•	estrutura real de diretórios
+	•	Dockerfile da toolbox
+	•	requirements.txt
+	•	docker-compose
+	•	primeiros scripts úteis
+
+Isso provavelmente levará cerca de 20 minutos para ficar funcionando no servidor.
