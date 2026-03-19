@@ -1,0 +1,375 @@
+Documento — Estratégia de Commits Atômicos no Toolbox (Registro Completo da Sessão)
+
+1. Diagnóstico inicial (estado real do repositório)
+
+O ponto de partida foi o seguinte conjunto de comandos executados:
+	•	git status --short
+	•	git branch --show-current
+	•	git log --oneline
+	•	git diff --stat
+	•	git diff (completo)
+	•	git ls-files --others
+
+A saída revelou:
+
+Arquivos modificados (tracked)
+	•	.env.example
+	•	bin/pdf-ocr
+	•	bin/run-job
+	•	docs/man1/run-job.1
+	•	docs/man1/translate.1
+	•	scripts/helpers/translate.sh
+	•	scripts/pipelines/pdf-ocr.sh
+
+Arquivos novos (untracked)
+	•	bin/image-ocr-translate
+	•	bin/job-inspect
+	•	docs/man1/job-inspect.1
+	•	scripts/helpers/job-inspect.sh
+	•	scripts/pipelines/image-ocr-translate.sh
+
+Estatísticas do diff
+	•	202 inserções
+	•	41 deleções
+
+⸻
+
+2. Interpretação do diagnóstico
+
+A partir disso, identificamos que:
+
+2.1 O trabalho não era homogêneo
+
+Existiam múltiplos tipos de mudança misturados:
+
+(A) Novas funcionalidades
+	•	image-ocr-translate
+	•	job-inspect
+	•	novo pipeline
+
+(B) Evolução de pipeline existente
+	•	pdf-ocr.sh
+
+(C) Mudanças de comportamento (core)
+	•	run-job
+	•	suporte a --env
+
+(D) Mudanças de UX / CLI
+	•	help (-h)
+	•	mensagens de saída
+	•	cores
+
+(E) Documentação
+	•	manpages
+
+(F) Configuração
+	•	.env.example
+
+⸻
+
+2.2 Problema principal identificado
+
+O problema não era apenas “tem muita coisa”.
+
+Era:
+
+As mudanças estão misturadas de forma semanticamente incorreta para commit.
+
+Exemplo claro:
+	•	run-job tinha:
+	•	mudança funcional (env override)
+	•	mudança de interface (help)
+	•	mudança visual (cores)
+
+Tudo no mesmo diff.
+
+⸻
+
+3. Objetivo definido
+
+Você explicitou:
+	•	quer commits atômicos
+	•	quer commits com responsabilidade única
+	•	quer histórico limpo para o projeto
+
+Isso está alinhado com:
+	•	seu Quality Flow
+	•	boas práticas de engenharia
+
+⸻
+
+4. Estratégia global de commit definida
+
+A estratégia proposta foi dividir por tipo de mudança, não por arquivo.
+
+4.1 Agrupamento por responsabilidade
+
+Definimos blocos de commits:
+
+Commit 1 — Core do run-job
+	•	parsing de argumentos
+	•	suporte a --env
+	•	execução com env
+	•	persistência no meta.env
+
+Commit 2 — UX do run-job
+	•	usage()
+	•	help (-h)
+	•	cores
+	•	print_summary
+
+⸻
+
+Commit 3 — Pipeline pdf-ocr (refactor + melhorias)
+	•	logging estruturado
+	•	melhorias de concatenação
+	•	validações
+
+⸻
+
+Commit 4 — translate (ajuste de comportamento)
+	•	source/target via env
+	•	fallback correto
+
+⸻
+
+Commit 5 — CLI wrappers novos
+	•	image-ocr-translate
+	•	job-inspect
+
+⸻
+
+Commit 6 — pipelines novos
+	•	scripts de pipeline
+
+⸻
+
+Commit 7 — documentação
+	•	manpages
+
+⸻
+
+Commit 8 — configuração
+	•	.env.example
+
+⸻
+
+5. Ferramenta escolhida
+
+Foi decidido usar:
+
+git add -p
+
+Motivo:
+	•	permite separar mudanças dentro do mesmo arquivo
+	•	essencial para commits atômicos reais
+
+⸻
+
+6. Fluxo operacional definido
+
+Passo base
+
+git restore --staged <arquivo>
+git add -p <arquivo>
+
+
+⸻
+
+7. Uso dos comandos interativos
+
+Durante a sessão, consolidamos o uso:
+
+tecla	ação
+y	stage
+n	não stage
+s	split
+e	editar
+j	próximo
+q	sair
+
+
+⸻
+
+8. Regra principal (decisão importante)
+
+Foi definido explicitamente:
+
+Sempre tentar s antes de e
+
+Motivo:
+	•	s preserva consistência do patch
+	•	e é arriscado
+
+⸻
+
+9. Heurística de decisão (y/n)
+
+Você passou a usar a seguinte lógica:
+
+Stage (y) se:
+	•	altera comportamento
+	•	altera contrato
+	•	altera execução
+
+Não stage (n) se:
+	•	é visual
+	•	é help
+	•	é logging
+	•	é UX
+
+⸻
+
+10. Uso do e (edição manual)
+
+Foi definido:
+
+Usar apenas quando:
+	•	s não resolve
+	•	hunk pequeno
+	•	mudança localizada
+
+⸻
+
+Regras do editor (fundamental)
+
+Durante a sessão você aprendeu:
+
+No git add -p:
+	•	linhas com + → deletar = remover mudança
+	•	linhas com - → manter = não mexer
+	•	contexto = espaço
+
+No git restore -p:
+	•	linhas com - → deletar
+	•	linhas com + → virar espaço
+
+⸻
+
+11. Problemas encontrados
+
+11.1 Hunks grandes demais
+	•	Git agrupou mudanças diferentes
+	•	dificultou separação
+
+⸻
+
+11.2 Hunks mistos
+
+Exemplo:
+
++ if env ...
++ print_summary
+
+Mistura:
+	•	lógica
+	•	UX
+
+⸻
+
+11.3 Limitação do patch manual
+
+Descoberta importante:
+
+Não é possível mover linhas com patch manual
+
+Só é possível:
+	•	remover
+	•	manter
+	•	adicionar
+
+⸻
+
+11.4 Erro encontrado
+
+error: patch corrompido
+
+Causa:
+	•	tentativa de reordenar código no editor
+
+⸻
+
+12. Alternativas consideradas
+
+12.1 Usar editor completo (reconstrução manual)
+
+Proposta:
+	•	copiar arquivo
+	•	editar versão parcial
+	•	commitar
+
+Você rejeitou inicialmente (preferiu add -p)
+
+⸻
+
+12.2 Usar restore -p
+
+Tentado para corrigir staging
+
+Problema:
+	•	não resolve reorganização estrutural
+
+⸻
+
+13. Ajuste de estratégia durante a sessão
+
+Após erros, refinamos:
+
+Estratégia final adotada
+	1.	usar s agressivamente
+	2.	só usar e em hunks pequenos
+	3.	evitar editar blocos grandes
+	4.	não tentar reorganizar código via patch
+
+⸻
+
+14. Insight técnico principal
+
+O ponto mais importante da sessão:
+
+Git trabalha com linhas, não com intenção.
+
+Consequência:
+	•	cabe ao desenvolvedor separar semanticamente
+
+⸻
+
+15. Estado final da sessão
+
+Você conseguiu:
+	•	separar corretamente:
+	•	parsing
+	•	persistência (meta.env)
+	•	evitar staging de:
+	•	UX
+	•	help
+	•	cores
+	•	isolar quase completamente o commit funcional
+
+Restando apenas:
+	•	um hunk específico difícil (misto)
+
+⸻
+
+16. Conclusão
+
+Essa sessão produziu:
+	•	estratégia clara de commits atômicos
+	•	domínio real de git add -p
+	•	entendimento das limitações do Git
+	•	método reproduzível
+
+⸻
+
+17. Uso futuro deste documento
+
+Você pode usar isso como:
+	•	base para outro chat
+	•	playbook do projeto
+	•	guideline interno
+
+⸻
+
+Se quiser, na próxima resposta posso continuar com:
+	•	continuação exata do ponto onde paramos no git add -p
+	•	ou generalizar isso para todos os arquivos restantes do commit
