@@ -1,0 +1,635 @@
+Perfeito. Vou refazer como um documento mais operacional, com:
+	•	diagnóstico
+	•	interpretação
+	•	estratégia
+	•	comandos exatos
+	•	como coletar o contexto para outro chat
+	•	como conduzir a análise
+	•	como executar a separação
+	•	erros e armadilhas encontrados
+	•	alternativas consideradas
+	•	decisões tomadas e por quê
+
+⸻
+
+Documento — Estratégia de Commits Atômicos no Toolbox (versão operacional completa)
+
+1. Contexto da situação
+
+Chegamos a um ponto do projeto em que havia muitas mudanças acumuladas no repositório da toolbox, e essas mudanças não pertenciam a uma única responsabilidade. Havia, ao mesmo tempo:
+	•	alterações em infraestrutura (run-job)
+	•	alterações em pipeline existente (pdf-ocr)
+	•	novo pipeline (image-ocr-translate)
+	•	novo comando utilitário (job-inspect)
+	•	mudanças em variáveis de ambiente
+	•	mudanças em documentação/manpages
+	•	mudanças de UX/CLI (help, cores, mensagens)
+
+O problema, portanto, não era apenas “tem muita coisa para commitar”, mas sim:
+
+as mudanças estavam misturadas de forma semanticamente inadequada para commits atômicos.
+
+⸻
+
+2. Comandos iniciais usados para diagnóstico do repositório
+
+O diagnóstico foi feito com este conjunto de comandos:
+
+cd /srv/toolbox/app
+
+git status --short
+printf '\n===== branch =====\n'
+git branch --show-current
+printf '\n===== último commits =====\n'
+git log --oneline --decorate -n 12
+printf '\n===== diff resumido =====\n'
+git diff --stat
+printf '\n===== untracked =====\n'
+git ls-files --others --exclude-standard
+printf '\n===== diff completo =====\n'
+git diff
+
+Esses comandos foram importantes porque fornecem, em conjunto:
+
+git status --short
+
+Mostra rapidamente:
+	•	arquivos modificados
+	•	arquivos novos
+	•	staging atual
+
+git branch --show-current
+
+Confirma em qual branch estamos trabalhando.
+
+git log --oneline --decorate -n 12
+
+Mostra o histórico recente, para analisar o “tom” e o nível de atomicidade dos commits anteriores.
+
+git diff --stat
+
+Mostra a distribuição do tamanho das mudanças por arquivo.
+
+git ls-files --others --exclude-standard
+
+Mostra arquivos novos ainda não rastreados.
+
+git diff
+
+Mostra o conteúdo real das mudanças, essencial para decidir os grupos de commit.
+
+⸻
+
+3. Resultado do diagnóstico
+
+O diagnóstico revelou algo próximo disto:
+
+Arquivos modificados (tracked)
+	•	.env.example
+	•	bin/pdf-ocr
+	•	bin/run-job
+	•	docs/man1/run-job.1
+	•	docs/man1/translate.1
+	•	scripts/helpers/translate.sh
+	•	scripts/pipelines/pdf-ocr.sh
+
+Arquivos novos (untracked)
+	•	bin/image-ocr-translate
+	•	bin/job-inspect
+	•	docs/man1/job-inspect.1
+	•	scripts/helpers/job-inspect.sh
+	•	scripts/pipelines/image-ocr-translate.sh
+
+Interpretação imediata
+
+Isso mostrou que o trabalho estava distribuído em pelo menos cinco frentes:
+	1.	infraestrutura de jobs
+	2.	pipeline pdf-ocr
+	3.	novo pipeline image-ocr-translate
+	4.	novo comando job-inspect
+	5.	documentação e variáveis de ambiente
+
+⸻
+
+4. Primeira conclusão estratégica
+
+A conclusão foi:
+
+Não vale commitar “por arquivo” de forma cega.
+O certo é commitar por responsabilidade.
+
+Isso porque havia casos como bin/run-job, em que o mesmo arquivo continha:
+
+parte funcional (core)
+	•	suporte a --env
+	•	ENV_OVERRIDES
+	•	gravação em meta.env
+	•	env "${ENV_OVERRIDES[@]}" ...
+
+parte de UX
+	•	usage()
+	•	-h/--help
+	•	cores ANSI
+	•	print_summary
+
+Se tudo isso entrasse num único commit, o histórico ficaria tecnicamente correto, mas semanticamente ruim.
+
+⸻
+
+5. Estratégia geral de commits definida
+
+A estratégia definida foi separar os commits por intenção.
+
+Inicialmente, a proposta mais ampla foi algo como:
+	1.	infraestrutura de jobs
+	2.	job inspection
+	3.	documentação de jobs
+	4.	variáveis canônicas e tradução
+	5.	documentação do translate
+	6.	pdf-ocr
+	7.	image-ocr-translate
+
+Depois, refinamos ainda mais para o caso do run-job, dividindo em dois commits:
+
+Commit A — core funcional do run-job
+	•	parsing de --env
+	•	ENV_OVERRIDES
+	•	gravação no meta.env
+	•	execução com env
+
+Commit B — UX do run-job
+	•	usage()
+	•	help
+	•	cores/TTY
+	•	print_summary
+
+⸻
+
+6. Ferramenta escolhida para atingir atomicidade real
+
+A ferramenta escolhida foi:
+
+git add -p
+
+Porque ela permite:
+	•	selecionar mudanças em pedaços (hunks)
+	•	dividir esses hunks
+	•	isolar subconjuntos de mudanças dentro do mesmo arquivo
+
+Essa escolha foi correta porque o problema principal estava dentro do mesmo arquivo.
+
+⸻
+
+7. Fluxo base recomendado para começar do zero em outro chat
+
+Se você quiser recomeçar esse processo em outro chat, o fluxo ideal é:
+
+Etapa 1 — coletar o estado do repositório
+
+Executar:
+
+cd /srv/toolbox/app
+
+git status --short
+printf '\n===== branch =====\n'
+git branch --show-current
+printf '\n===== últimos commits =====\n'
+git log --oneline --decorate -n 15
+printf '\n===== diff resumido =====\n'
+git diff --stat
+printf '\n===== untracked =====\n'
+git ls-files --others --exclude-standard
+printf '\n===== diff completo =====\n'
+git diff
+
+Etapa 2 — pedir análise
+
+No novo chat, a análise deve responder:
+	•	quais grupos semânticos existem
+	•	quais commits devem ser criados
+	•	quais arquivos pertencem a cada commit
+	•	quais arquivos precisam de git add -p
+
+Etapa 3 — separar por ordem
+
+Depois da análise, o outro chat deve orientar:
+	1.	commits fáceis por arquivo
+	2.	commits difíceis por git add -p
+	3.	validação final de cada commit
+
+⸻
+
+8. Regras práticas consolidadas para git add -p
+
+Ao longo da sessão, consolidamos o seguinte:
+
+Comandos úteis dentro do git add -p
+
+tecla	função
+y	stage
+n	não stage
+s	split (dividir hunk)
+e	editar hunk manualmente
+j	ir ao próximo hunk
+q	sair
+
+
+⸻
+
+9. Regra mais importante da sessão
+
+A regra principal definida foi:
+
+Sempre tentar s antes de e.
+
+Motivo
+
+Porque o split é seguro e mantém a consistência do patch.
+
+Quando usar e
+
+Somente quando:
+	•	s falha
+	•	o hunk já está pequeno
+	•	a edição é simples
+
+⸻
+
+10. O que foi aprendido sobre e (edição manual)
+
+Esse ponto foi extremamente importante.
+
+Em git add -p
+
+No editor manual:
+	•	linhas com +:
+	•	apagar = não stagear essa adição
+	•	linhas com -:
+	•	deixar = manter a remoção
+	•	contexto:
+	•	permanece como contexto
+
+Em git restore -p --staged
+
+No editor manual:
+	•	linhas com -:
+	•	apagar = tirar a remoção do staged
+	•	linhas com +:
+	•	transformar em espaço/contexto = não mexer nisso no staged
+
+⸻
+
+11. Erros e dificuldades encontrados
+
+Durante a sessão, enfrentamos vários problemas reais.
+
+11.1 Hunk grande demais
+
+O run-job aparecia inicialmente em um hunk enorme contendo ao mesmo tempo:
+	•	usage
+	•	cores
+	•	print_summary
+	•	ENV_OVERRIDES
+	•	-h|--help
+	•	env ...
+
+Isso impedia decisões binárias simples (y/n).
+
+11.2 Hunk misto com lógica e UX
+
+O caso mais problemático foi algo como:
+
+-if "${PIPELINE}" ...
++if env "${ENV_OVERRIDES[@]}" ...
++    print_summary ...
+
+Esse trecho misturava:
+	•	comportamento funcional
+	•	apresentação/UX
+
+11.3 Edição manual em hunk grande
+
+Quando tentamos usar e cedo demais, o patch ficou confuso demais.
+
+11.4 Patch corrompido
+
+Ao tentar “reordenar” linhas via patch manual, o Git devolveu erro de patch corrompido.
+
+Isso nos levou a uma descoberta importante:
+
+o patch manual não serve para mover linhas; ele serve para manter/remover adições e remoções.
+
+⸻
+
+12. Ajuste de estratégia após os erros
+
+Depois desses problemas, a estratégia foi refinada:
+
+Nova disciplina
+	1.	dividir o máximo possível com s
+	2.	rejeitar blocos inteiros de UX com n
+	3.	aceitar blocos funcionais puros com y
+	4.	usar e somente em hunks pequenos já quase limpos
+
+⸻
+
+13. Exemplo concreto da sequência no run-job
+
+A sequência que funcionou melhor foi:
+
+Passo 1
+
+Limpar o stage do arquivo:
+
+git restore --staged bin/run-job
+
+Passo 2
+
+Entrar no patch:
+
+git add -p bin/run-job
+
+Passo 3
+
+No primeiro hunk grande:
+	•	responder s
+
+Passo 4
+
+No sub-hunk que continha apenas:
+	•	usage()
+	•	cores
+	•	print_summary
+	•	help inicial
+
+responder:
+	•	n
+
+Passo 5
+
+No sub-hunk com:
+	•	shift 2
+	•	ENV_OVERRIDES
+	•	parsing de --env
+	•	-h|--help no meio
+
+responder:
+	•	e
+
+e, no editor, remover apenas as linhas:
+
++        -h|--help)
++            usage
++            exit 0
++            ;;
+
+Passo 6
+
+No hunk final:
+	•	responder s
+
+Depois disso, separar em partes menores:
+
+Parte JOB_ENV_OVERRIDES
+	•	responder y
+
+Parte com print_summary em bloco de erro
+	•	responder n
+
+Parte com if env ... ainda misturada
+	•	tentar s
+	•	se não dividisse, usar e em hunk pequeno
+
+Parte com echo "${JOB_ROOT}" removido
+	•	responder n
+
+⸻
+
+14. Como validar depois de cada tentativa
+
+Após qualquer tentativa de stage parcial, sempre usamos:
+
+git diff --cached -- bin/run-job
+
+Esse comando foi crucial porque mostra exatamente o que está staged.
+
+O que o staged do primeiro commit deveria conter
+
+Somente:
+	•	shift 2
+	•	ENV_OVERRIDES
+	•	parsing de --env
+	•	gravação em meta.env
+	•	troca de if "${PIPELINE}" ... para if env "${ENV_OVERRIDES[@]}" ...
+
+O que NÃO deveria conter
+	•	usage()
+	•	-h|--help
+	•	print_summary
+	•	cores
+	•	mudanças cosméticas
+	•	remoção do echo "${JOB_ROOT}"
+
+⸻
+
+15. Alternativas cogitadas
+
+Durante a sessão, cogitamos outras saídas.
+
+Alternativa 1 — desistir do split e fazer o arquivo inteiro
+
+Foi considerada, mas rejeitada inicialmente, porque reduziria a atomicidade.
+
+Alternativa 2 — reconstruir manualmente o arquivo
+
+A ideia era:
+	1.	salvar a versão atual
+	2.	escrever uma versão parcial só com o commit funcional
+	3.	commitar
+	4.	restaurar a versão completa
+	5.	commitar o resto
+
+Essa alternativa era tecnicamente sólida, mas você preferiu insistir no git add -p, o que foi razoável pelo caráter de aprendizado.
+
+Alternativa 3 — git restore -p --staged
+
+Foi tentada como método corretivo, mas mostrou-se inadequada quando o problema exigia mais do que simplesmente remover linhas do staged.
+
+⸻
+
+16. Decisões tomadas e justificativas
+
+Decisão: usar git add -p
+
+Justificativa:
+	•	permite commits semanticamente corretos dentro do mesmo arquivo
+
+Decisão: dividir run-job em dois commits
+
+Justificativa:
+	•	separa comportamento de interface
+
+Decisão: insistir em s antes de e
+
+Justificativa:
+	•	menor risco de corromper o patch
+
+Decisão: usar e só em hunks pequenos
+
+Justificativa:
+	•	viabilidade prática
+
+Decisão: validar sempre com git diff --cached
+
+Justificativa:
+	•	evita commitar algo quebrado ou semanticamente errado
+
+⸻
+
+17. Procedimento recomendado para outro chat continuar a partir daqui
+
+Se você for abrir outro chat e quiser que ele continue exatamente essa saga, o ideal é começar fornecendo:
+
+(A) O diagnóstico inicial
+
+Executar e colar:
+
+cd /srv/toolbox/app
+
+git status --short
+printf '\n===== branch =====\n'
+git branch --show-current
+printf '\n===== últimos commits =====\n'
+git log --oneline --decorate -n 15
+printf '\n===== diff resumido =====\n'
+git diff --stat
+printf '\n===== untracked =====\n'
+git ls-files --others --exclude-standard
+printf '\n===== diff completo =====\n'
+git diff
+
+(B) Este contexto estratégico
+
+Explicar ao novo chat:
+	•	que o objetivo é commits atômicos por responsabilidade
+	•	que run-job deve ser dividido em:
+	•	commit funcional
+	•	commit de UX
+	•	que a estratégia adotada foi:
+	•	s antes de e
+	•	validação por git diff --cached
+
+(C) O ponto exato do processo
+
+Se estiver no meio do git add -p, informar qual hunk apareceu.
+
+⸻
+
+18. Script sugerido para coleta automática de contexto Git
+
+Foi sugerido um script para coletar tudo automaticamente:
+
+cat > /srv/toolbox/app/collect_git_commit_context.sh <<'EOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+cd /srv/toolbox/app
+
+echo "===== STATUS SHORT ====="
+git status --short
+
+echo
+echo "===== BRANCH ====="
+git branch --show-current
+
+echo
+echo "===== LOG ====="
+git log --oneline --decorate -n 15
+
+echo
+echo "===== DIFF STAT ====="
+git diff --stat
+
+echo
+echo "===== UNTRACKED ====="
+git ls-files --others --exclude-standard
+
+echo
+echo "===== DIFF: bin/run-job ====="
+git diff -- bin/run-job || true
+
+echo
+echo "===== DIFF: bin/pdf-ocr ====="
+git diff -- bin/pdf-ocr || true
+
+echo
+echo "===== DIFF: bin/image-ocr-translate ====="
+git diff -- bin/image-ocr-translate || true
+
+echo
+echo "===== DIFF: bin/job-inspect ====="
+git diff -- bin/job-inspect || true
+
+echo
+echo "===== DIFF: scripts/helpers/job-inspect.sh ====="
+git diff -- scripts/helpers/job-inspect.sh || true
+
+echo
+echo "===== DIFF: scripts/helpers/translate.sh ====="
+git diff -- scripts/helpers/translate.sh || true
+
+echo
+echo "===== DIFF: scripts/pipelines/pdf-ocr.sh ====="
+git diff -- scripts/pipelines/pdf-ocr.sh || true
+
+echo
+echo "===== DIFF: scripts/pipelines/image-ocr-translate.sh ====="
+git diff -- scripts/pipelines/image-ocr-translate.sh || true
+
+echo
+echo "===== DIFF: docs/man1/run-job.1 ====="
+git diff -- docs/man1/run-job.1 || true
+
+echo
+echo "===== DIFF: docs/man1/translate.1 ====="
+git diff -- docs/man1/translate.1 || true
+
+echo
+echo "===== DIFF: docs/man1/job-inspect.1 ====="
+git diff -- docs/man1/job-inspect.1 || true
+
+echo
+echo "===== DIFF: .env.example ====="
+git diff -- .env.example || true
+EOF
+
+chmod +x /srv/toolbox/app/collect_git_commit_context.sh
+
+E depois:
+
+/srv/toolbox/app/collect_git_commit_context.sh
+
+Isso serviria muito bem para alimentar outro chat.
+
+⸻
+
+19. Conclusão geral
+
+Essa sessão produziu um aprendizado real e valioso sobre:
+	•	engenharia de commits
+	•	leitura semântica de diffs
+	•	limites do git add -p
+	•	limites do patch manual
+	•	organização profissional do histórico
+
+A principal conclusão técnica foi:
+
+commits atômicos não surgem automaticamente do Git; eles exigem leitura, estratégia e separação consciente por intenção.
+
+E a principal conclusão operacional foi:
+
+para mudanças misturadas num mesmo arquivo, git add -p com uso disciplinado de s, n, y e e é a melhor ferramenta — desde que usado com rigor e validação constante.
+
+⸻
+
+Na próxima resposta, eu posso transformar este documento em uma versão ainda mais prática, com um bloco final chamado “roteiro curto de retomada em outro chat”, pronto para copiar e colar como prompt/contexto.
