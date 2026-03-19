@@ -1,0 +1,309 @@
+Documento — Estratégia de Commits Atômicos no Toolbox (Sessão complementar: roteiro curto de retomada em outro chat)
+
+20. Objetivo desta continuação
+
+A sessão anterior registrou:
+	•	o diagnóstico
+	•	a interpretação
+	•	a estratégia
+	•	as ferramentas
+	•	os erros
+	•	as decisões
+
+Agora, esta continuação tem um objetivo mais prático:
+
+deixar pronto um roteiro enxuto, mas suficiente, para você abrir outro chat e conseguir retomar o trabalho sem ter que reconstruir todo o raciocínio.
+
+A ideia aqui é te dar:
+	1.	um roteiro operacional
+	2.	um bloco de contexto para colar em outro chat
+	3.	uma sequência de comandos para coleta e validação
+	4.	uma forma de conduzir a conversa com o outro chat sem perder precisão
+
+⸻
+
+21. Roteiro operacional de retomada
+
+Se você for abrir outro chat para continuar essa “saga do Git”, a sequência ideal é esta.
+
+Etapa 1 — explicar o contexto em linguagem natural
+
+No início do novo chat, dizer algo como:
+	•	estou trabalhando no projeto Toolbox do meu homelab
+	•	tenho várias mudanças locais
+	•	quero organizar commits atômicos
+	•	já diagnostiquei que há mudanças misturadas por responsabilidade
+	•	especialmente em bin/run-job, que mistura comportamento e UX
+	•	quero continuar usando git add -p, privilegiando s antes de e
+	•	quero que você me guie passo a passo, hunk por hunk, sem apressar a solução
+
+Isso já alinha bem o comportamento esperado do outro chat.
+
+⸻
+
+Etapa 2 — fornecer este diagnóstico resumido
+
+O outro chat precisa saber, logo de início, algo assim:
+	•	o repositório tinha arquivos modificados e novos
+	•	as mudanças foram agrupadas em:
+	•	infraestrutura (run-job)
+	•	job-inspect
+	•	pdf-ocr
+	•	image-ocr-translate
+	•	translate
+	•	manpages
+	•	.env.example
+	•	a estratégia de commit foi separar por responsabilidade
+	•	o run-job foi dividido em dois commits conceituais:
+	•	commit funcional (--env)
+	•	commit de UX (help, cores, summary)
+
+⸻
+
+Etapa 3 — executar os comandos de coleta
+
+No novo chat, antes de pedir orientações específicas, executar:
+
+cd /srv/toolbox/app
+
+git status --short
+printf '\n===== branch =====\n'
+git branch --show-current
+printf '\n===== últimos commits =====\n'
+git log --oneline --decorate -n 15
+printf '\n===== diff resumido =====\n'
+git diff --stat
+printf '\n===== untracked =====\n'
+git ls-files --others --exclude-standard
+printf '\n===== diff completo =====\n'
+git diff
+
+E colar a saída.
+
+⸻
+
+Etapa 4 — se o foco for um arquivo específico
+
+Se você já souber que quer continuar, por exemplo, no run-job, então além dos comandos acima, vale executar:
+
+git diff -- bin/run-job
+git diff --cached -- bin/run-job
+
+Isso mostra:
+	•	o que ainda está fora do stage
+	•	o que por acaso já está staged
+
+⸻
+
+Etapa 5 — se o trabalho já estiver no meio de um git add -p
+
+A regra é:
+	•	não resumir
+	•	não paraphrasear
+	•	colar o hunk exatamente como apareceu no terminal
+
+E pedir ao outro chat:
+
+me diga apenas o próximo comando/resposta (y, n, s ou e), sem adiantar passos.
+
+Isso é importante porque impede o outro chat de “pular” para soluções mais agressivas sem necessidade.
+
+⸻
+
+22. Prompt-base pronto para colar em outro chat
+
+Abaixo está um texto-base que você pode colar quase inteiro em outro chat.
+
+⸻
+
+Estou trabalhando no projeto Toolbox do meu homelab e preciso continuar uma estratégia de commits atômicos no Git.
+
+Já fizemos um diagnóstico e identificamos que minhas mudanças locais estão misturadas por responsabilidade. O caso mais importante é o arquivo bin/run-job, que mistura mudanças funcionais e mudanças de UX.
+
+A estratégia definida foi:
+	1.	separar commits por responsabilidade, não só por arquivo
+	2.	no caso de run-job, dividir em dois commits:
+	•	commit funcional:
+	•	suporte a --env
+	•	ENV_OVERRIDES
+	•	gravação em meta.env
+	•	execução com env
+	•	commit de UX:
+	•	usage()
+	•	-h/--help
+	•	cores ANSI com detecção de TTY
+	•	print_summary
+	3.	usar git add -p
+	4.	sempre tentar s antes de e
+	5.	usar e apenas em hunks pequenos
+	6.	validar sempre com git diff --cached -- <arquivo>
+
+Também aprendemos que:
+	•	o patch manual do Git não serve para mover linhas
+	•	tentar corrigir hunks grandes com e é perigoso
+	•	o correto é dividir o máximo possível antes de editar
+
+Eu quero que você me guie passo a passo, sem pular etapas. Quando eu te mostrar um hunk do git add -p, me diga apenas qual resposta devo dar (y, n, s, e) ou, se for o caso, qual edição mínima fazer. Não quero que você acelere para soluções alternativas sem necessidade.
+
+Agora vou te mandar a saída atual dos comandos de diagnóstico e/ou do hunk em que eu estiver.
+
+⸻
+
+23. Prompt-base mais curto, para retomada rápida
+
+Se você quiser algo mais curto:
+
+⸻
+
+Quero continuar uma estratégia de commits atômicos no meu projeto Toolbox.
+
+Já definimos:
+	•	commits por responsabilidade
+	•	run-job dividido em:
+	•	commit funcional (--env, ENV_OVERRIDES, meta.env, env)
+	•	commit de UX (usage, -h, cores, print_summary)
+	•	usar git add -p
+	•	tentar s antes de e
+	•	validar com git diff --cached
+
+Quero que você me guie hunk por hunk, sem pular etapas. Vou te mandar agora o estado atual do git ou o próximo hunk.
+
+⸻
+
+24. Bloco mínimo de comandos para retomada técnica
+
+Se o outro chat precisar só do mínimo operacional, os comandos mais importantes são estes:
+
+cd /srv/toolbox/app
+
+git status --short
+git diff --stat
+git diff
+git diff --cached
+
+Se o foco for run-job:
+
+git diff -- bin/run-job
+git diff --cached -- bin/run-job
+
+Se quiser começar a separação:
+
+git restore --staged bin/run-job
+git add -p bin/run-job
+
+
+⸻
+
+25. Roteiro para o outro chat analisar e te responder corretamente
+
+O outro chat deve seguir esta ordem:
+
+25.1 Primeiro analisar
+	•	o que há no working tree
+	•	quais responsabilidades existem
+	•	o que já está staged
+
+25.2 Depois propor grupos de commit
+
+Exemplo:
+	•	run-job core
+	•	run-job UX
+	•	job-inspect
+	•	docs
+	•	translate
+	•	pdf-ocr
+	•	image-ocr-translate
+
+25.3 Só então começar a operação hunk por hunk
+
+Esse ponto é importante porque evita uma orientação “cega” baseada só em pedaços do diff.
+
+⸻
+
+26. Estratégia de fallback, se o outro chat travar de novo
+
+Se em algum momento o outro chat insistir em:
+	•	reescrever o arquivo inteiro cedo demais
+	•	abandonar git add -p sem necessidade
+	•	ir para soluções globais sem respeitar o processo
+
+você pode recolocar o trilho dizendo:
+
+Quero seguir com git add -p. Só aceito fallback manual se:
+	1.	o split falhar repetidamente,
+	2.	o hunk estiver pequeno,
+	3.	ou a edição exigir algo que o patch manual claramente não consegue fazer.
+
+⸻
+
+27. Critério de qualidade para saber se a retomada está boa
+
+Você pode avaliar o novo chat com base nestes critérios:
+
+Sinal de boa condução
+	•	ele respeita o diagnóstico
+	•	ele trabalha com o estado real do repositório
+	•	ele responde ao hunk atual, não a um cenário imaginado
+	•	ele manda primeiro s, depois n/y, e só por fim e
+
+Sinal de má condução
+	•	ele pula direto para reescrever arquivo
+	•	ele confunde add -p com restore -p
+	•	ele mistura estratégia com execução
+	•	ele ignora a atomicidade que você explicitamente pediu
+
+⸻
+
+28. Bloco de validação após cada microetapa
+
+Depois de qualquer passo importante, vale usar:
+
+git diff --cached -- <arquivo>
+
+ou:
+
+GIT_PAGER=cat git diff --cached -- <arquivo>
+
+Isso foi uma prática importante da sessão original e deve continuar sendo usada.
+
+⸻
+
+29. Resumo final de retomada
+
+Se você quiser uma versão ultraenxuta para outro chat, esta talvez seja a melhor:
+
+⸻
+
+Estou no projeto Toolbox e preciso continuar uma estratégia de commits atômicos.
+
+Contexto:
+	•	há mudanças locais misturadas por responsabilidade
+	•	o caso principal é bin/run-job
+	•	esse arquivo precisa virar dois commits:
+	1.	funcional: --env, ENV_OVERRIDES, meta.env, execução com env
+	2.	UX: usage, -h, cores TTY, print_summary
+
+Regras definidas:
+	•	usar git add -p
+	•	sempre tentar s antes de e
+	•	usar e só em hunks pequenos
+	•	validar com git diff --cached -- <arquivo>
+	•	não pular para fallback manual sem necessidade
+
+Quero que você me guie passo a passo, hunk por hunk, sem acelerar.
+
+Agora vou te mandar:
+	•	ou o diagnóstico do repositório
+	•	ou o próximo hunk do git add -p.
+
+⸻
+
+30. Fechamento
+
+Com os dois documentos juntos, você fica com:
+	•	um registro estratégico completo da sessão
+	•	um roteiro operacional pronto para alimentar outro chat
+
+Isso deve reduzir bastante a necessidade de voltar na conversa original.
+
+Na próxima resposta, eu posso escrever uma terceira peça opcional: um checklist de execução em formato quase procedural, com caixas lógicas do tipo “se acontecer X, responda Y; se acontecer Z, responda W”, especificamente para git add -p.
